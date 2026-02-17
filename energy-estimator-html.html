@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>London Atelier — Energy Savings Estimator</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { min-height: 100vh; background: #FAFAF8; display: flex; align-items: center; justify-content: center; padding: 40px 20px; font-family: Georgia, serif; color: #1a1a1a; }
+.wrap { max-width: 560px; width: 100%; }
+.sub { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 8px; }
+h1 { font-size: 28px; font-weight: 400; line-height: 1.3; margin-bottom: 4px; }
+.intro { font-size: 14px; color: #777; line-height: 1.6; margin-bottom: 40px; }
+.label { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 16px; }
+.step { margin-bottom: 36px; }
+.btn { display: block; width: 100%; padding: 14px 18px; border: 1px solid #ddd; border-radius: 4px; background: #fff; color: #1a1a1a; font-size: 15px; font-family: Georgia, serif; text-align: left; cursor: pointer; transition: all 0.15s ease; margin-bottom: 8px; }
+.btn:hover { border-color: #aaa; }
+.btn.active { border: 1.5px solid #1a1a1a; background: #1a1a1a; color: #fff; }
+.epc-btn { width: 52px; height: 52px; border: 1px solid #ddd; border-radius: 4px; background: #fff; font-size: 18px; font-weight: 600; font-family: Georgia, serif; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; }
+.btn-primary { display: block; width: 100%; padding: 16px 32px; background: #1a1a1a; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-family: Georgia, serif; cursor: pointer; }
+.btn-secondary { padding: 14px 24px; background: #fff; color: #1a1a1a; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: Georgia, serif; cursor: pointer; flex: 1; }
+.btn-cta { padding: 14px 24px; background: #1a1a1a; color: #fff; border: none; border-radius: 4px; font-size: 14px; font-family: Georgia, serif; cursor: pointer; flex: 2; }
+input[type=number] { padding: 14px 18px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; width: 140px; font-family: Georgia, serif; outline: none; }
+.hint { font-size: 12px; color: #aaa; margin-top: 8px; }
+.card { background: #fff; border: 1px solid #e5e5e0; border-radius: 6px; padding: 32px; margin-bottom: 24px; }
+.card-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 6px; }
+.card-desc { font-size: 13px; color: #777; margin-bottom: 28px; }
+.stat-row { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+.stat { flex: 1 1 140px; background: #f5f5f0; border-radius: 6px; padding: 18px; text-align: center; }
+.stat-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.stat-value { font-size: 26px; font-weight: 600; color: #0b7a3e; }
+.stat-value.dark { color: #1a1a1a; }
+.stat-sub { font-size: 11px; color: #999; margin-top: 4px; }
+.section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 12px; }
+.row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0eb; }
+.row:last-child { border-bottom: none; }
+.row-label { font-size: 14px; color: #555; }
+.row-value { font-size: 14px; color: #1a1a1a; }
+.row-value.green { color: #0b7a3e; font-weight: 600; }
+.green-box { background: #f0f7f0; border-radius: 6px; padding: 16px; margin-top: 16px; font-size: 13px; color: #0b7a3e; line-height: 1.6; }
+.disclaimer { background: #f5f5f0; border-radius: 6px; padding: 24px; margin-bottom: 24px; font-size: 13px; color: #555; line-height: 1.7; }
+.actions { display: flex; gap: 12px; }
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="sub">London Atelier</p>
+  <h1>Energy Savings Estimator</h1>
+  <p class="intro">See how much you could save by improving your home's energy performance.</p>
+
+  <div id="form-section">
+    <div class="step" id="step1">
+      <p class="label">1 — Property Type</p>
+      <div id="prop-btns"></div>
+    </div>
+    <div class="step hidden" id="step2">
+      <p class="label">2 — Approximate Size</p>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <input type="number" id="size-input" placeholder="e.g. 90">
+        <span style="font-size:14px;color:#777;">square metres</span>
+      </div>
+      <p class="hint">A typical 3-bed semi is around 90m². A 2-bed flat is around 60m².</p>
+    </div>
+    <div class="step hidden" id="step3">
+      <p class="label">3 — Current EPC Rating</p>
+      <div id="epc-btns"></div>
+      <p class="hint">Not sure? Check your EPC certificate or search on gov.uk/find-energy-certificate</p>
+    </div>
+    <div class="step hidden" id="step4">
+      <p class="label">4 — Target Performance</p>
+      <div id="target-btns"></div>
+    </div>
+    <button class="btn-primary hidden" id="calc-btn" onclick="showResult()">See Your Savings</button>
+  </div>
+
+  <div id="result-section" class="hidden"></div>
+</div>
+
+<script>
+const props = [
+  { id:"flat", label:"Flat / Apartment", mult:0.75 },
+  { id:"terraced", label:"Terraced House", mult:0.85 },
+  { id:"semi", label:"Semi-Detached", mult:1.0 },
+  { id:"detached", label:"Detached House", mult:1.2 }
+];
+const epcs = [
+  { id:"G", cost:42, co2:0.125 }, { id:"F", cost:34, co2:0.102 },
+  { id:"E", cost:28, co2:0.081 }, { id:"D", cost:23, co2:0.065 },
+  { id:"C", cost:17.5, co2:0.048 }, { id:"B", cost:13, co2:0.030 },
+  { id:"A", cost:9, co2:0.015 }
+];
+const targets = [
+  { id:"C", label:"EPC C — Standard Retrofit", low:55, high:110 },
+  { id:"B", label:"EPC B — High Performance Retrofit", low:120, high:250 },
+  { id:"A", label:"EPC A — Passivhaus Standard", low:300, high:550 }
+];
+const epcColors = { A:"#0b7a3e", B:"#2d9e4f", C:"#8cc640", D:"#fcd207", E:"#f5a623", F:"#e8601c", G:"#d0021b" };
+const showEpcs = ["G","F","E","D","C"];
+
+let sel = { prop:null, size:0, epc:null, target:null };
+
+function renderProps() {
+  const el = document.getElementById('prop-btns'); el.innerHTML = '';
+  props.forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (sel.prop === p.id ? ' active' : '');
+    b.textContent = p.label;
+    b.onclick = () => { sel.prop = p.id; renderProps(); document.getElementById('step2').classList.remove('hidden'); };
+    el.appendChild(b);
+  });
+}
+
+function renderEpcs() {
+  const el = document.getElementById('epc-btns'); el.innerHTML = '';
+  showEpcs.forEach(id => {
+    const b = document.createElement('button');
+    b.className = 'epc-btn';
+    b.textContent = id;
+    b.style.color = sel.epc === id ? '#fff' : epcColors[id];
+    b.style.background = sel.epc === id ? epcColors[id] : '#fff';
+    b.style.border = sel.epc === id ? '2px solid #1a1a1a' : '1px solid #ddd';
+    b.onclick = () => { sel.epc = id; sel.target = null; renderEpcs(); renderTargets(); document.getElementById('step4').classList.remove('hidden'); };
+    el.appendChild(b);
+  });
+}
+
+function renderTargets() {
+  const el = document.getElementById('target-btns'); el.innerHTML = '';
+  if (!sel.epc) return;
+  const ci = epcs.findIndex(e => e.id === sel.epc);
+  targets.forEach(t => {
+    const ti = epcs.findIndex(e => e.id === t.id);
+    if (ti <= ci) return;
+    const b = document.createElement('button');
+    b.className = 'btn' + (sel.target === t.id ? ' active' : '');
+    b.textContent = t.label;
+    b.onclick = () => { sel.target = t.id; renderTargets(); checkReady(); };
+    el.appendChild(b);
+  });
+}
+
+document.getElementById('size-input').addEventListener('input', function() {
+  sel.size = parseFloat(this.value) || 0;
+  if (sel.size > 0) { document.getElementById('step3').classList.remove('hidden'); renderEpcs(); }
+  checkReady();
+});
+
+function checkReady() {
+  const btn = document.getElementById('calc-btn');
+  if (sel.prop && sel.size > 0 && sel.epc && sel.target) btn.classList.remove('hidden');
+  else btn.classList.add('hidden');
+}
+
+function fmt(n) { return '£' + Math.round(n).toLocaleString('en-GB'); }
+
+function showResult() {
+  const pt = props.find(x => x.id === sel.prop);
+  const cur = epcs.find(x => x.id === sel.epc);
+  const tgt = epcs.find(x => x.id === sel.target);
+  const ti = targets.find(x => x.id === sel.target);
+
+  const curA = sel.size * cur.cost * pt.mult;
+  const tgtA = sel.size * tgt.cost * pt.mult;
+  const save = curA - tgtA;
+  const mo = save / 12;
+  const s10 = save * 10;
+  const s25 = save * 25;
+  const curCO2 = sel.size * cur.co2 * pt.mult;
+  const tgtCO2 = sel.size * tgt.co2 * pt.mult;
+  const co2 = curCO2 - tgtCO2;
+  const pct = ((curA - tgtA) / curA) * 100;
+  const uLow = sel.size * ti.low * pt.mult;
+  const uHigh = sel.size * ti.high * pt.mult;
+  const pbLow = Math.round(uLow / save);
+  const pbHigh = Math.round(uHigh / save);
+
+  document.getElementById('form-section').classList.add('hidden');
+  const r = document.getElementById('result-section');
+  r.classList.remove('hidden');
+  r.innerHTML = `
+    <div class="card">
+      <p class="card-sub">Your Estimated Savings</p>
+      <p class="card-desc">${pt.label} · ${sel.size}m² · EPC ${sel.epc} → EPC ${sel.target}</p>
+      <div class="stat-row">
+        <div class="stat"><p class="stat-label">Annual Saving</p><p class="stat-value">${fmt(save)}</p><p class="stat-sub">${fmt(mo)}/month</p></div>
+        <div class="stat"><p class="stat-label">CO₂ Reduction</p><p class="stat-value">${co2.toFixed(1)}t</p><p class="stat-sub">tonnes per year</p></div>
+        <div class="stat"><p class="stat-label">Est. Upgrade Cost</p><p class="stat-value dark">${fmt(uLow)}</p><p class="stat-sub">to ${fmt(uHigh)}</p></div>
+      </div>
+      <p class="section-label">Energy Bills</p>
+      <div class="row"><span class="row-label">Current estimated annual bill</span><span class="row-value">${fmt(curA)}</span></div>
+      <div class="row"><span class="row-label">Estimated bill after upgrade</span><span class="row-value">${fmt(tgtA)}</span></div>
+      <div class="row"><span class="row-label">Energy reduction</span><span class="row-value green">${Math.round(pct)}%</span></div>
+      <br>
+      <p class="section-label">Long-Term Value</p>
+      <div class="row"><span class="row-label">Saving over 10 years</span><span class="row-value">${fmt(s10)}</span></div>
+      <div class="row"><span class="row-label">Saving over 25 years</span><span class="row-value" style="font-weight:600">${fmt(s25)}</span></div>
+      <div class="row"><span class="row-label">Estimated payback period</span><span class="row-value">${pbLow}–${pbHigh} years</span></div>
+      <div class="green-box">Improving your EPC rating also increases property value. Rightmove research shows upgrading from EPC F to C can add up to £56,000 to a home's value — often exceeding the cost of the upgrade itself.</div>
+    </div>
+    <div class="disclaimer">Estimates are based on average UK energy costs under the 2025/26 Ofgem price cap and typical retrofit costs for London properties. Actual savings and upgrade costs depend on your home's specific construction, heating system, and scope of work. London Atelier is Passivhaus certified and can assess your home's full energy potential.</div>
+    <div class="actions">
+      <button class="btn-secondary" onclick="resetForm()">Start Over</button>
+      <button class="btn-cta">Book a Free Consultation</button>
+    </div>`;
+}
+
+function resetForm() {
+  sel = { prop:null, size:0, epc:null, target:null };
+  document.getElementById('size-input').value = '';
+  ['step2','step3','step4'].forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById('calc-btn').classList.add('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+  document.getElementById('form-section').classList.remove('hidden');
+  renderProps(); renderEpcs(); renderTargets();
+}
+
+renderProps();
+</script>
+</body>
+</html>
