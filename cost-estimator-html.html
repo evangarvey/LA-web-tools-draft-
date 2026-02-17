@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>London Atelier — Project Cost Estimator</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { min-height: 100vh; background: #FAFAF8; display: flex; align-items: center; justify-content: center; padding: 40px 20px; font-family: Georgia, serif; color: #1a1a1a; }
+.wrap { max-width: 560px; width: 100%; }
+.sub { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 8px; }
+h1 { font-size: 28px; font-weight: 400; line-height: 1.3; margin-bottom: 4px; }
+.intro { font-size: 14px; color: #777; line-height: 1.6; margin-bottom: 40px; }
+.label { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 16px; }
+.step { margin-bottom: 36px; }
+.btn { display: block; width: 100%; padding: 14px 18px; border: 1px solid #ddd; border-radius: 4px; background: #fff; color: #1a1a1a; font-size: 15px; font-family: Georgia, serif; text-align: left; cursor: pointer; transition: all 0.15s ease; margin-bottom: 8px; }
+.btn:hover { border-color: #aaa; }
+.btn.active { border: 1.5px solid #1a1a1a; background: #1a1a1a; color: #fff; }
+.btn-primary { display: block; width: 100%; padding: 16px 32px; background: #1a1a1a; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-family: Georgia, serif; cursor: pointer; }
+.btn-secondary { padding: 14px 24px; background: #fff; color: #1a1a1a; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: Georgia, serif; cursor: pointer; flex: 1; }
+.btn-cta { padding: 14px 24px; background: #1a1a1a; color: #fff; border: none; border-radius: 4px; font-size: 14px; font-family: Georgia, serif; cursor: pointer; flex: 2; }
+input[type=number] { padding: 14px 18px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; width: 140px; font-family: Georgia, serif; outline: none; }
+.hint { font-size: 12px; color: #aaa; margin-top: 8px; }
+.card { background: #fff; border: 1px solid #e5e5e0; border-radius: 6px; padding: 32px; margin-bottom: 24px; }
+.card-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 6px; }
+.card-desc { font-size: 13px; color: #777; margin-bottom: 24px; }
+.row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0eb; }
+.row:last-child { border-bottom: none; }
+.row-label { font-size: 14px; color: #555; }
+.row-value { font-size: 14px; color: #1a1a1a; }
+.total-row { display: flex; justify-content: space-between; padding: 14px 0; border-top: 2px solid #1a1a1a; }
+.total-label, .total-value { font-size: 16px; font-weight: 600; }
+.disclaimer { background: #f5f5f0; border-radius: 6px; padding: 24px; margin-bottom: 24px; font-size: 13px; color: #555; line-height: 1.7; }
+.actions { display: flex; gap: 12px; }
+.hidden { display: none; }
+.finish-desc { font-size: 12px; opacity: 0.7; margin-left: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="sub">London Atelier</p>
+  <h1>Project Cost Estimator</h1>
+  <p class="intro">Get a ballpark estimate for your London project in three steps.</p>
+
+  <div id="form-section">
+    <div class="step" id="step1">
+      <p class="label">1 — Project Type</p>
+      <div id="project-btns"></div>
+    </div>
+    <div class="step hidden" id="step2">
+      <p class="label">2 — Approximate Size</p>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <input type="number" id="size-input" placeholder="e.g. 30">
+        <span style="font-size:14px;color:#777;">square metres</span>
+      </div>
+      <p class="hint">A typical kitchen extension is 20–30m². A loft conversion is 15–25m².</p>
+    </div>
+    <div class="step hidden" id="step3">
+      <p class="label">3 — Level of Finish</p>
+      <div id="finish-btns"></div>
+    </div>
+    <button class="btn-primary hidden" id="calc-btn" onclick="showResult()">Get Estimate</button>
+  </div>
+
+  <div id="result-section" class="hidden"></div>
+</div>
+
+<script>
+const projects = [
+  { id:"extension-single", label:"Single-Storey Extension", min:2200, max:3200 },
+  { id:"extension-double", label:"Two-Storey Extension", min:2500, max:3600 },
+  { id:"loft-dormer", label:"Loft Conversion (Dormer)", min:2400, max:3500 },
+  { id:"loft-mansard", label:"Loft Conversion (Mansard)", min:3000, max:4200 },
+  { id:"renovation", label:"Full House Renovation", min:1800, max:3200 },
+  { id:"new-build", label:"New Build", min:3000, max:4500 },
+  { id:"basement", label:"Basement Conversion", min:3500, max:5500 }
+];
+const finishes = [
+  { id:"standard", label:"Standard", mult:1.0, desc:"Good quality, practical finishes" },
+  { id:"high", label:"High", mult:1.25, desc:"Premium materials, bespoke details" },
+  { id:"luxury", label:"Luxury", mult:1.55, desc:"Exceptional finishes throughout" }
+];
+
+let sel = { project:null, size:0, finish:null };
+
+function render(container, items, key, onClick, extra) {
+  const el = document.getElementById(container);
+  el.innerHTML = '';
+  items.forEach(item => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (sel[key] === item.id ? ' active' : '');
+    b.innerHTML = item.label + (extra && item.desc ? '<span class="finish-desc">' + item.desc + '</span>' : '');
+    b.onclick = () => { sel[key] = item.id; onClick(); };
+    el.appendChild(b);
+  });
+}
+
+function renderProjects() { render('project-btns', projects, 'project', () => { renderProjects(); document.getElementById('step2').classList.remove('hidden'); }, false); }
+function renderFinishes() { render('finish-btns', finishes, 'finish', () => { renderFinishes(); checkReady(); }, true); }
+
+renderProjects();
+renderFinishes();
+
+document.getElementById('size-input').addEventListener('input', function() {
+  sel.size = parseFloat(this.value) || 0;
+  if (sel.size > 0) document.getElementById('step3').classList.remove('hidden');
+  checkReady();
+});
+
+function checkReady() {
+  const btn = document.getElementById('calc-btn');
+  if (sel.project && sel.size > 0 && sel.finish) btn.classList.remove('hidden');
+  else btn.classList.add('hidden');
+}
+
+function fmt(n) { return '£' + Math.round(n).toLocaleString('en-GB'); }
+
+function showResult() {
+  const p = projects.find(x => x.id === sel.project);
+  const f = finishes.find(x => x.id === sel.finish);
+  const minB = sel.size * p.min * f.mult, maxB = sel.size * p.max * f.mult;
+  const minF = minB * 0.10, maxF = maxB * 0.15;
+  const minC = minB * 0.10, maxC = maxB * 0.10;
+  const minV = (minB + minF + minC) * 0.20, maxV = (maxB + maxF + maxC) * 0.20;
+  const minT = minB + minF + minC + minV, maxT = maxB + maxF + maxC + maxV;
+
+  document.getElementById('form-section').classList.add('hidden');
+  const r = document.getElementById('result-section');
+  r.classList.remove('hidden');
+  r.innerHTML = `
+    <div class="card">
+      <p class="card-sub">Your Estimate</p>
+      <p class="card-desc">${p.label} · ${sel.size}m² · ${f.label} finish</p>
+      <div class="row"><span class="row-label">Construction cost</span><span class="row-value">${fmt(minB)} – ${fmt(maxB)}</span></div>
+      <div class="row"><span class="row-label">Professional fees (10–15%)</span><span class="row-value">${fmt(minF)} – ${fmt(maxF)}</span></div>
+      <div class="row"><span class="row-label">Contingency (10%)</span><span class="row-value">${fmt(minC)} – ${fmt(maxC)}</span></div>
+      <div class="row"><span class="row-label">VAT (20%)</span><span class="row-value">${fmt(minV)} – ${fmt(maxV)}</span></div>
+      <div class="total-row"><span class="total-label">Estimated Total</span><span class="total-value">${fmt(minT)} – ${fmt(maxT)}</span></div>
+    </div>
+    <div class="disclaimer">This is a ballpark estimate based on average London construction costs in 2025/26. Actual costs vary depending on site conditions, design complexity, material choices, and borough-specific requirements. For a detailed assessment tailored to your project, book a free consultation with London Atelier.</div>
+    <div class="actions">
+      <button class="btn-secondary" onclick="resetForm()">Start Over</button>
+      <button class="btn-cta">Book a Free Consultation</button>
+    </div>`;
+}
+
+function resetForm() {
+  sel = { project:null, size:0, finish:null };
+  document.getElementById('size-input').value = '';
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step3').classList.add('hidden');
+  document.getElementById('calc-btn').classList.add('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+  document.getElementById('form-section').classList.remove('hidden');
+  renderProjects(); renderFinishes();
+}
+</script>
+</body>
+</html>
